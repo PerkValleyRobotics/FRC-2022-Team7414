@@ -56,6 +56,8 @@ double power = .6;//.38 is TINY shot .6 is big shot
     
     climb.retract();
     intake.retract();
+
+    CameraServer.startAutomaticCapture();
   }
 
   @Override
