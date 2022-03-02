@@ -159,7 +159,7 @@ double power = .6;//.38 is TINY shot .6 is big shot
       if(oi.getXboxButtonPress(8)){
         power=.32;
       }else{
-        power = .527;
+        power = .527;//was.527
       }
       
       if(oi.getXboxButtonPress(Portmap.buttonConveyorReverse) && oi.getTrigger(Portmap.triggerShooter) > .05){
