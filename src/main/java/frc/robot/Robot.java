@@ -33,10 +33,11 @@ public class Robot extends TimedRobot {
   public static boolean enableCompressor = false;
 
   public static SendableChooser<String> autonChooser;
+  public static SendableChooser<String> powerChooser;
 
   AutonBase auton;
 
-double power = .6;//.38 is TINY shot .6 is big shot
+  double power = .52;//.3 is TINY shot .52 is big shot
   
 
   @Override
@@ -48,6 +49,11 @@ double power = .6;//.38 is TINY shot .6 is big shot
     autonChooser.addOption("Shoot2FromTarmac", "shoot2");
     autonChooser.addOption("Shoot3FromFender", "shoot3");
     SmartDashboard.putData("AUTON", autonChooser);
+
+    powerChooser = new SendableChooser<String>();
+    powerChooser.setDefaultOption("High", "h");
+    powerChooser.addOption("Low", "l");
+    SmartDashboard.putData("power", powerChooser);
 
 
     oi = new OIHandler();
@@ -78,6 +84,12 @@ double power = .6;//.38 is TINY shot .6 is big shot
 
   @Override
   public void teleopPeriodic() {
+
+    //reset encoders
+      if(oi.getJoystickButtonPress(7)){
+        drive.resetEncoders();
+      }
+
     //climb.off();
 
 
@@ -97,7 +109,6 @@ double power = .6;//.38 is TINY shot .6 is big shot
       motor.stop();
     }*/
 
-    //SmartDashboard.putNumber("LeftEncoder", Liam.getLeftEncoder());
 
 
     //Climb
@@ -168,9 +179,9 @@ double power = .6;//.38 is TINY shot .6 is big shot
       }
     //Shooter
       if(oi.getXboxButtonPress(8)){
-        power=.32;
+        power = .32;
       }else{
-        power = .527;//was.527
+        power = .52;//was.52
       }
       
       if(oi.getXboxButtonPress(Portmap.buttonConveyorReverse) && oi.getTrigger(Portmap.triggerShooter) > .05){
@@ -182,8 +193,6 @@ double power = .6;//.38 is TINY shot .6 is big shot
         shooter.spin(power);
       }
     
-    
-
     SmartDashboard.putNumber("tX", vision.getTX());
     SmartDashboard.putNumber("tY", vision.getTY());
     SmartDashboard.putNumber("tV", vision.getTV());
@@ -191,25 +200,34 @@ double power = .6;//.38 is TINY shot .6 is big shot
     SmartDashboard.putBoolean("intakeExtended", intake.deployed);
 
     SmartDashboard.putNumber("power", power);
+
+    SmartDashboard.putNumber("LeftEncoder", drive.getLeftEncoder());
+    SmartDashboard.putNumber("RightEncoder", drive.getLeftEncoder());
   }
 
   @Override
   public void autonomousInit(){
     
     String opt = autonChooser.getSelected();
+    double pow = .3;
+    if(powerChooser.getSelected().equals("h")){
+      pow = .52;
+    }
     if(opt.equals("shoot1")){
-      auton = new AutonShoot1();
+      auton = new AutonShoot1(pow);
     } else if (opt.equals("shoot2")){
-      auton = new AutonShoot2();
+      auton = new AutonShoot2(pow);
     }else if (opt.equals("shoot2")){
-      auton = new AutonShoot3();
+      auton = new AutonShoot3(pow);
     } else {
-      auton = new AutonBase();
+      auton = new AutonBase(pow);
     }
   }
 
   @Override
   public void autonomousPeriodic(){
+    SmartDashboard.putNumber("LeftEncoder", drive.getLeftEncoder());
+    SmartDashboard.putNumber("RightEncoder", drive.getLeftEncoder());
     if(!auton.isFinished()){
       auton.execute();
     }
