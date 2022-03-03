@@ -1,7 +1,7 @@
 package frc.robot;
 
 import frc.robot.*;
-import frc.robot.Commands.AutonBase;
+import frc.robot.Commands.*;
 import frc.robot.Subsystems.*;
 
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -32,6 +32,8 @@ public class Robot extends TimedRobot {
 
   public static boolean enableCompressor = false;
 
+  public static SendableChooser<String> autonChooser;
+
   AutonBase auton;
 
 double power = .6;//.38 is TINY shot .6 is big shot
@@ -39,6 +41,15 @@ double power = .6;//.38 is TINY shot .6 is big shot
 
   @Override
   public void robotInit() {
+
+    autonChooser = new SendableChooser<String>();
+    autonChooser.setDefaultOption("DriveOffLine", "drive");
+    autonChooser.addOption("Shoot1FromFender", "shoot1");
+    autonChooser.addOption("Shoot2FromTarmac", "shoot2");
+    autonChooser.addOption("Shoot3FromFender", "shoot3");
+    SmartDashboard.putData("AUTON", autonChooser);
+
+
     oi = new OIHandler();
     
     drive = new DriveTrain(); 
@@ -184,7 +195,17 @@ double power = .6;//.38 is TINY shot .6 is big shot
 
   @Override
   public void autonomousInit(){
-    auton = new AutonBase();
+    
+    String opt = autonChooser.getSelected();
+    if(opt.equals("shoot1")){
+      auton = new AutonShoot1();
+    } else if (opt.equals("shoot2")){
+      auton = new AutonShoot2();
+    }else if (opt.equals("shoot2")){
+      auton = new AutonShoot3();
+    } else {
+      auton = new AutonBase();
+    }
   }
 
   @Override
