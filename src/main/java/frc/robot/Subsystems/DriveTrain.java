@@ -24,6 +24,8 @@ public class DriveTrain{ //extends SubsystemBase{
 
 	DifferentialDrive diffDrive;
 
+	double speed = 0;
+
     public DriveTrain() {
 
 		left1 = new CANSparkMax(Portmap.CAN_left1, MotorType.kBrushless);
@@ -47,6 +49,7 @@ public class DriveTrain{ //extends SubsystemBase{
 	}
 
     public void drive(double x, double y){
+		
         diffDrive.arcadeDrive(y, x);
 	}
 
@@ -54,6 +57,7 @@ public class DriveTrain{ //extends SubsystemBase{
 		diffDrive.arcadeDrive(-y, x);
 	}
 
+	
 	public void straightDrive(){
         diffDrive.arcadeDrive(.5, 0);
 	}
