@@ -76,11 +76,11 @@ public class Intake {
     }
 
     public void intakeReverse(){
-        intake.set(-iSpeed);
+        intake.set(-iSpeed + .2);
     }
 
     public void boosterReverse(){
-        boosterWheel.set(-bSpeed);
+        boosterWheel.set(-bSpeed +.2);
     }
 
     public void boosterStop(){

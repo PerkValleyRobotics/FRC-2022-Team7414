@@ -4,7 +4,7 @@ import frc.robot.Robot;
 
 public class AutonShoot1 extends AutonBase{
     
-    private int flag = 0;
+    private int flag = -1;
     private double time;
 
     private boolean finished;
@@ -21,13 +21,17 @@ public class AutonShoot1 extends AutonBase{
 
     @Override
     public void execute(){
+        if(flag == -1){
+            Robot.drive.resetEncoders();
+            flag++;
+        }
         if(flag ==0){
-            Robot.shooter.spin(power);//.527 higher
-            if(System.currentTimeMillis() - time >= 1500){
+            Robot.shooter.PIDShooter(2200);//.527 higher
+            if(System.currentTimeMillis() - time >= 1500){//WAS 1500
                 flag++;
             }
         } else if (flag == 1){
-            Robot.shooter.spin(power);
+            Robot.shooter.PIDShooter(2200);
             Robot.conveyor.allForwards();
             if(System.currentTimeMillis() - time >= 3000){
                 Robot.shooter.stop();

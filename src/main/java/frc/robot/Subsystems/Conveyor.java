@@ -8,7 +8,7 @@ public class Conveyor {
     PWMVictorSPX cBottom;
     PWMVictorSPX cTop;
 
-    double bspeed = -.4;
+    double bspeed = -.3;
     double tspeed = .6; //.5
 
     public Conveyor(){

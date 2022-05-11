@@ -7,6 +7,7 @@ import frc.robot.Subsystems.*;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 import edu.wpi.first.wpilibj.smartdashboard.*;
+import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticsControlModule;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -34,20 +35,22 @@ public class Robot extends TimedRobot {
 
   public static SendableChooser<String> autonChooser;
   public static SendableChooser<String> powerChooser;
-
+  public boolean shooterFlag = false;
   AutonBase auton;
 
-  double power = .52;//.3 is TINY shot .52 is big shot
-  
+  double power = .527;//.3 is TINY shot .52 is big shot
+  double rpm = 2200;
 
   @Override
   public void robotInit() {
-
+    BuiltInAccelerometer acc;
+    
     autonChooser = new SendableChooser<String>();
     autonChooser.setDefaultOption("DriveOffLine", "drive");
-    autonChooser.addOption("Shoot1FromFender", "shoot1");
-    autonChooser.addOption("Shoot2FromTarmac", "shoot2");
-    autonChooser.addOption("Shoot3FromFender", "shoot3");
+    autonChooser.addOption("Shoot1LimeLight", "shoot1");
+    /*autonChooser.addOption("Shoot2TL", "shoot2curve");
+    autonChooser.addOption("Shoot2TR", "shoot2straight");*/
+    autonChooser.addOption("Shoot2Limelight","shoot2LimeLight");
     SmartDashboard.putData("AUTON", autonChooser);
 
     powerChooser = new SendableChooser<String>();
@@ -94,14 +97,36 @@ public class Robot extends TimedRobot {
 
 
     //Drive
-      if(!oi.getJoystickButtonPress(6)){
-        drive.drive(oi.getJoystickX(), oi.getJoystickY());
+      if(oi.getJoystickButtonPress(6)){
+        drive.backwardsDrive(oi.getJoystickX(), oi.getJoystickY()*.8);
+        
+      } else if (oi.getTrigger(Portmap.triggerLimelight) > .05){
+        //Limelight
+        //if()
+        vision.lightOn();
+        if(Math.abs(vision.getTX()) > 1 && vision.getTV()>0){
+          double normTX = vision.getTX() / 15;
+          if(Math.abs(normTX) > .6){
+            normTX = Math.copySign(.6, normTX);
+          }
+
+          double turnSpeed = .327 * Math.tan(1.46 * normTX);
+
+          if(Math.abs(normTX)<.15){
+            turnSpeed = Math.copySign(.15, turnSpeed);
+          }
+          SmartDashboard.putNumber("LimeTune", turnSpeed);
+          drive.drive(turnSpeed,oi.getJoystickY()*.8);
+        } else {
+          drive.drive(oi.getJoystickX(), oi.getJoystickY()*.8);
+        }
       } else {
-        drive.backwardsDrive(oi.getJoystickX(), oi.getJoystickY());
+        vision.lightOff();
+        drive.drive(oi.getJoystickX(), oi.getJoystickY()*.8);
       }
       
 
-    /*if(oi.getJoystickButtonPress(1)){
+    /*if(oi.getJoystickButtonPress(1f)){
       motor.forwards(.3);
     }else if (oi.getJoystickButtonPress(2)){
       motor.backwards(.3);
@@ -170,28 +195,36 @@ public class Robot extends TimedRobot {
           intake.boosterStop();
         }
 
-    //Limelight
-      if(oi.getTrigger(Portmap.triggerLimelight) > .05){
-        vision.lightOn();
-         //change to regression model
-      } else {
-        vision.lightOff();
-      }
+    
     //Shooter
       if(oi.getXboxButtonPress(8)){
-        power = .32;
+        power = .33; //.327
       }else{
-        power = .52;//was.52
+        power = .47; //was .54 good for fender 
+        //power = .527;//was.52
+        
       }
-      
+
       if(oi.getXboxButtonPress(Portmap.buttonConveyorReverse) && oi.getTrigger(Portmap.triggerShooter) > .05){
         shooter.spin(-.3);
-      }else if(oi.getTrigger(Portmap.triggerShooter)<power){
+      } else if (oi.getXboxButtonPress(8) && oi.getTrigger(Portmap.triggerShooter)>.05){
+        shooter.PIDShooter(1100);
+      }else if(oi.getTrigger(Portmap.triggerShooter)>.05){
+        if(!shooterFlag){
+        //shooter.spin(power);
+        shooter.PIDShooter(rpm);
+          
+        }
+      }
+      else {
+        shooter.PIDShooter(0);
+      } 
+     /* else if(oi.getTrigger(Portmap.triggerShooter)<power){
         shooter.spin(oi.getTrigger(3));
       }
       else{
         shooter.spin(power);
-      }
+      } */
     
     SmartDashboard.putNumber("tX", vision.getTX());
     SmartDashboard.putNumber("tY", vision.getTY());
@@ -203,24 +236,28 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("LeftEncoder", drive.getLeftEncoder());
     SmartDashboard.putNumber("RightEncoder", drive.getLeftEncoder());
+    SmartDashboard.putNumber("Shooter", shooter.getVel());
   }
 
   @Override
   public void autonomousInit(){
     
     String opt = autonChooser.getSelected();
-    double pow = .3;
+    double pow = .33; //was .3
     if(powerChooser.getSelected().equals("h")){
-      pow = .52;
+      pow = .54; //was .52
     }
     if(opt.equals("shoot1")){
-      auton = new AutonShoot1(pow);
-    } else if (opt.equals("shoot2")){
-      auton = new AutonShoot2(pow);
-    }else if (opt.equals("shoot2")){
-      auton = new AutonShoot3(pow);
-    } else {
-      auton = new AutonBase(pow);
+      auton = new AutonLimelight1Ball(pow);
+      //auton = new AutonShoot1(pow);
+    } /*else if (opt.equals("shoot2curve")){
+      auton = new AutonShoot2Curve(pow);
+    }else if (opt.equals("shoot2straight")){
+      auton = new AutonShoot2Straight(pow);
+    }*/ else if (opt.equals("shoot2LimeLight")){
+      auton = new AutonLimelight(pow);
+    }else {
+      auton = new AutonLimelight(pow);
     }
   }
 
@@ -228,6 +265,7 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic(){
     SmartDashboard.putNumber("LeftEncoder", drive.getLeftEncoder());
     SmartDashboard.putNumber("RightEncoder", drive.getLeftEncoder());
+    SmartDashboard.putNumber("Shooter", shooter.getVel());
     if(!auton.isFinished()){
       auton.execute();
     }
